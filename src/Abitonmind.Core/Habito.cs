@@ -11,6 +11,11 @@ public class Habito
     public int Id { get; set; }
 
     /// <summary>
+    /// El id del usuario al que va asociado un hábito.
+    /// </summary>
+    public string UsuarioId { get; set; } = string.Empty;
+
+    /// <summary>
     /// Nombre que tiene el hábito.
     /// </summary>
     public required string Nombre { get; set; }
@@ -36,12 +41,20 @@ public class Habito
     public TipoHabito? Tipo { get; set; }
 
     /// <summary>
+    /// Fecha en la que se archivó un hábito y no está activo. Un null, significa que el hábito sigue activo
+    /// </summary>
+    public DateOnly? FechaArchivado { get; set; }
+
+    /// <summary>
     /// Método que devuelve un booleano si toca o no toca hoy este hábito.
     /// </summary>
     /// <param name="fecha"></param>
     /// <returns></returns>
     public bool TocaEl(DateOnly fecha)
     {
+         if (FechaArchivado is not null && fecha > FechaArchivado)
+            return false;
+
         DiasSemana diaConcreto = DiaDe(fecha.DayOfWeek);
 
         return Dias.HasFlag(diaConcreto);

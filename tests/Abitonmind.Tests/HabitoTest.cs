@@ -42,4 +42,43 @@ public class HabitoTest
 
         Assert.True(result);
     }
+
+    /// <summary>
+    /// Comprueba que si se da de baja un hábito, no siga siendo válido después de la baja.
+    /// </summary>
+    [Fact]
+    public void TocaEl_DevuelveFalse_SiLaFechaEsPosteriorALaBaja()
+    {
+         var habito1 = new Habito {Nombre = "Hacer la cama", Dias = DiasSemana.Lunes | DiasSemana.Jueves | DiasSemana.Domingo, FechaArchivado=new DateOnly(2026, 11, 16)};
+
+         var result = habito1.TocaEl(new DateOnly(2026, 11, 23));
+
+        Assert.False(result);
+    }
+
+    /// <summary>
+    /// Comprueba que si se da de baja un hábito, siga siendo válido antes de la baja.
+    /// </summary>
+    [Fact]
+    public void TocaEl_DevuelveTrue_SiLaFechaEsAnteriorALaBaja()
+    {
+         var habito1 = new Habito {Nombre = "Hacer la cama", Dias = DiasSemana.Lunes | DiasSemana.Jueves | DiasSemana.Domingo, FechaArchivado=new DateOnly(2026, 11, 16)};
+
+         var result = habito1.TocaEl(new DateOnly(2026, 11, 9));
+
+        Assert.True(result);
+    }
+
+    /// <summary>
+    /// Comprueba que si se da de baja un hábito, siga siendo válido el mismo día de la baja.
+    /// </summary>
+    [Fact]
+    public void TocaEl_DevuelveTrue_SiLaFechaEsMismoDiaALaBaja()
+    {
+         var habito1 = new Habito {Nombre = "Hacer la cama", Dias = DiasSemana.Lunes | DiasSemana.Jueves | DiasSemana.Domingo, FechaArchivado=new DateOnly(2026, 11, 16)};
+
+         var result = habito1.TocaEl(new DateOnly(2026, 11, 16));
+
+        Assert.True(result);
+    }
 }

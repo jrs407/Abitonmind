@@ -74,7 +74,6 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Abitonmind.Core\Abitonmind.Core.csproj" />
-	  <ProjectReference Include="..\Abitonmind.Data\Abitonmind.Data.csproj" />
 	</ItemGroup>
 
 </Project>
