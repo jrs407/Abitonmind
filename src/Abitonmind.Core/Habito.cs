@@ -26,6 +26,11 @@ public class Habito
     public string? Descripcion { get; set; }
 
     /// <summary>
+    /// Describe que preparación hace falta para poder hacer el hábito.
+    /// </summary>
+    public string? Preparacion { get; set; }
+
+    /// <summary>
     /// Hora que puede ser opcional en un hábito.
     /// </summary>
     public TimeOnly? Hora { get; set; }
@@ -46,13 +51,28 @@ public class Habito
     public DateOnly? FechaArchivado { get; set; }
 
     /// <summary>
+    /// Variable que guarda el id si lo hubiera de un habito que se hace antes de este.
+    /// </summary>
+    public int? habitoAntecesor { get; set; }
+
+    /// <summary>
+    /// El color con el que se coloreahará el habito.
+    /// </summary>
+    public Colores? ColorHabito { get; set; }
+
+    /// <summary>
+    /// Booleano que dice si un hábito produce un recordatorio, por defecto en false.
+    /// </summary>
+    public bool Recordatorio { get; set; }
+
+    /// <summary>
     /// Método que devuelve un booleano si toca o no toca hoy este hábito.
     /// </summary>
     /// <param name="fecha"></param>
     /// <returns></returns>
     public bool TocaEl(DateOnly fecha)
     {
-         if (FechaArchivado is not null && fecha > FechaArchivado)
+        if (FechaArchivado is not null && fecha > FechaArchivado)
             return false;
 
         DiasSemana diaConcreto = DiaDe(fecha.DayOfWeek);
