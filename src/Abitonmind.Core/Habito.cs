@@ -41,7 +41,7 @@ public class Habito
     public DiasSemana Dias { get; set; }
 
     /// <summary>
-    /// El tipo de hábito que es un hábito. (noSeleccionado, Positivo, Neutral, etc).
+    /// El tipo de hábito que es un hábito. (Positivo, Neutral, Negativo).
     /// </summary>
     public TipoHabito? Tipo { get; set; }
 
@@ -51,14 +51,14 @@ public class Habito
     public DateOnly? FechaArchivado { get; set; }
 
     /// <summary>
-    /// Variable que guarda el id si lo hubiera de un habito que se hace antes de este.
+    /// Guarda el id si lo hubiera de un habito que se hace antes de este, en caso de null, no tiene antecesor.
     /// </summary>
-    public int? habitoAntecesor { get; set; }
+    public int? HabitoAntecesorId { get; set; }
 
     /// <summary>
-    /// El color con el que se coloreahará el habito.
+    /// El color con el que se coloreará el habito.
     /// </summary>
-    public Colores? ColorHabito { get; set; }
+    public ColorEtiqueta? ColorHabito { get; set; }
 
     /// <summary>
     /// Booleano que dice si un hábito produce un recordatorio, por defecto en false.

@@ -36,12 +36,12 @@ public class PasoMinimo
     public int Repeticion { get; set; }
 
     /// <summary>
-    /// El color con el que se coloreahará el paso mínimo.
+    /// El color con el que se coloreará el paso mínimo.
     /// </summary>
-    public Colores? ColorPasoMinimo { get; set; }
+    public ColorEtiqueta? ColorPasoMinimo { get; set; }
 
     /// <summary>
     /// Fecha en la que se archivó un paso mínimo y no está activo. Un null, significa que sigue activo.
     /// </summary>
-    public DateOnly? ArchivadoEl { get; set; }
+    public DateOnly? FechaArchivado { get; set; }
 }
