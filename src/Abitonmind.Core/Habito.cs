@@ -97,4 +97,34 @@ public class Habito
         DayOfWeek.Sunday => DiasSemana.Domingo,
         _ => throw new ArgumentOutOfRangeException(nameof(diaSemana), diaSemana, "El día tiene que estar entre el lunes al domingo")
     };
+
+    /// <summary>
+    /// Si devuelve null, es que todo está bien y es correcto. Si devuelve texto, es el mensaje de error y explica que ha fallado
+    /// </summary>
+    /// <param name="habitoAnterior">El habito predecesor a este.</param>
+    /// <returns>Mensaje de error o null</returns>
+    public string? ErrorAlIrDespuesDe(Habito habitoAnterior)
+    {
+        if (habitoAnterior.Id == Id)
+        {
+            return "Un habito no puede ir después de si mismo";
+        }
+
+        if (habitoAnterior.FechaArchivado is not null)
+        {
+            return "El habito anterior esta archivado.";
+        }
+
+        if (Hora is not null)
+        {
+            return "El habito ya se hace en otro momento";
+        }
+
+        if (!habitoAnterior.Dias.HasFlag(Dias))
+        {
+            return "Un habito solo puede hacerse si comparte los dias con su antecesor";
+        }
+        
+        return null;
+    }
 }
