@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Abitonmind.Api/Abitonmind.Api.csproj" />
     <Project Path="src/Abitonmind.App/Abitonmind.App.csproj" />
     <Project Path="src/Abitonmind.Core/Abitonmind.Core.csproj" />
     <Project Path="src/Abitonmind.Data/Abitonmind.Data.csproj" />
