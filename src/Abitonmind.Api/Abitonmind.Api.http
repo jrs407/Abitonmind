@@ -1,6 +1,159 @@
-@Abitonmind.Api_HostAddress = http://localhost:5285
+@host = http://localhost:5285
 
-GET {{Abitonmind.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+### Registrar usuario de prueba
+POST {{host}}/api/cuenta/register
+Content-Type: application/json
 
-###
+{
+    "email" : "prueba@example.com",
+    "password" : "Contrasena1234."
+}
+
+### Login usuario de prueba.
+# @name login
+POST {{host}}/api/cuenta/login
+Content-Type: application/json
+
+{
+    "email" : "prueba@example.com",
+    "password" : "Contrasena1234."
+}
+
+### Crear habito.
+# @name crearHabito
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Habito de prueba",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : "21:30:00",
+    "dias" : 5,
+    "tipo" : 1,
+    "habitoAntecesorId" : null,
+    "colorHabito" : 1,
+    "recordatorio" : false
+}
+
+### Listar habitos.
+# @name listarHabitos
+GET {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Ver habito concreto.
+# @name habitoConcreto
+GET {{host}}/api/habitos/{{crearHabito.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Editar habito
+# @name editarHabito
+PUT {{host}}/api/habitos/{{crearHabito.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Habito de prueba con otro nombre",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : "21:30:00",
+    "dias" : 5,
+    "tipo" : 1,
+    "habitoAntecesorId" : null,
+    "colorHabito" : 1,
+    "recordatorio" : false
+}
+
+### Prueba de error al crear un habito sin nombre
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : "21:30:00",
+    "dias" : 5,
+    "tipo" : 1,
+    "habitoAntecesorId" : null,
+    "colorHabito" : 1,
+    "recordatorio" : false
+}
+
+### Marcar hecho hoy.
+# @name marcarRegistro
+PUT {{host}}/api/habitos/{{crearHabito.response.body.$.id}}/registros/2026-11-15
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Desmarcar registro.
+# @name desmarcarRegistro
+DELETE {{host}}/api/habitos/{{crearHabito.response.body.$.id}}/registros/2026-11-15
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Listar habitos sin token.
+# @name listarHabitosSinToken
+GET {{host}}/api/habitos
+
+### Ver habito que no existe.
+# @name habitoConcretoNoExistente
+GET {{host}}/api/habitos/9999
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Registrar otro usuario.
+POST {{host}}/api/cuenta/register
+Content-Type: application/json
+
+{
+    "email" : "pruebaOtroUsuario@example.com",
+    "password" : "Contrasena1234."
+}
+
+### Login otro usuario.
+# @name loginOtroUsuario
+POST {{host}}/api/cuenta/login
+Content-Type: application/json
+
+{
+    "email" : "pruebaOtroUsuario@example.com",
+    "password" : "Contrasena1234."
+}
+
+### Otro usuario: ver el habito del primero (404).
+GET {{host}}/api/habitos/{{crearHabito.response.body.$.id}}
+Authorization: Bearer {{loginOtroUsuario.response.body.$.accessToken}}
+
+### Otro usuario: editar el habito del primero (404).
+PUT {{host}}/api/habitos/{{crearHabito.response.body.$.id}}
+Authorization: Bearer {{loginOtroUsuario.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Cambiado por otro usuario",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : "21:30:00",
+    "dias" : 5,
+    "tipo" : 1,
+    "habitoAntecesorId" : null,
+    "colorHabito" : 1,
+    "recordatorio" : false
+}
+
+### Otro usuario: marcar el habito del primero (404).
+PUT {{host}}/api/habitos/{{crearHabito.response.body.$.id}}/registros/2026-11-15
+Authorization: Bearer {{loginOtroUsuario.response.body.$.accessToken}}
+
+### Otro usuario: eliminar el habito del primero (404).
+DELETE {{host}}/api/habitos/{{crearHabito.response.body.$.id}}
+Authorization: Bearer {{loginOtroUsuario.response.body.$.accessToken}}
+
+### Otro usuario: listar sus habitos (200 y lista vacia).
+GET {{host}}/api/habitos
+Authorization: Bearer {{loginOtroUsuario.response.body.$.accessToken}}
+
+### Eliminar habito concreto.
+# @name eliminarHabito
+DELETE {{host}}/api/habitos/{{crearHabito.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
