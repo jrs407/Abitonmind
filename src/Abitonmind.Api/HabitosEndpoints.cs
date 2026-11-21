@@ -17,11 +17,11 @@ public static class HabitosEndpoints
     /// </summary>
     /// <param name="usuario"></param>
     /// <returns></returns>
-    private static string idUsuario(ClaimsPrincipal usuario)
+    private static string IdDelUsuario(ClaimsPrincipal usuario)
     {
         return usuario.FindFirstValue(ClaimTypes.NameIdentifier)!;
     }
-    
+
     /// <summary>
     /// Transforma un objeto de la clase Habito en HabitoDto.
     /// </summary>
@@ -42,6 +42,68 @@ public static class HabitosEndpoints
     }
 
     /// <summary>
+    /// Método estatico que sirve para comprobar que todos los datos son correctos.
+    /// </summary>
+    /// <param name="datos"></param>
+    /// <returns></returns>
+    private static string? ErrorEnDatos(GuardarHabitoDto datos)
+    {
+        if (string.IsNullOrWhiteSpace(datos.Nombre))
+        {
+            return "El nombre es obligatorio";
+        }
+
+        if (datos.Nombre.Length > 100)
+        {
+            return "El nombre es demasiado largo";
+        }
+
+        if (datos.Descripcion is not null)
+        {
+            if (datos.Descripcion.Length > 255)
+            {
+                return "La descripcion es demasiado larga.";
+            }
+        }
+
+        if (datos.Preparacion is not null)
+        {
+            if (datos.Preparacion.Length > 100)
+            {
+                return "La preparacion es demasiado larga.";
+            }
+        }
+
+        if (datos.ColorHabito is not null)
+        {
+            if (!Enum.IsDefined(datos.ColorHabito.Value))
+            {
+                return "Ese color no existe";
+            }
+        }
+
+        if (datos.Tipo is not null)
+        {
+            if (!Enum.IsDefined(datos.Tipo.Value))
+            {
+                return "Ese tipo de habito no existe";
+            }
+        }
+
+        if (datos.Dias < DiasSemana.Ninguno || datos.Dias > DiasSemana.Todos)
+        {
+            return "Ese día no existe";
+        }
+
+        if (datos.Recordatorio && datos.Hora is null)
+        {
+            return "Solo puede haber un recordatorio si hay una hora de aviso.";
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Creación del mapa de endpoints de habitos.
     /// </summary>
     /// <param name="app"></param>
@@ -53,7 +115,7 @@ public static class HabitosEndpoints
         // Endpoint que devuelve todos los habitos del usuario que hace la petición (sin los archivados).
         grupo.MapGet("/", async (ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            string usuarioId = idUsuario(usuario);
+            string usuarioId = IdDelUsuario(usuario);
 
             List<Habito> habitos = await db.Habitos.Where(h => h.UsuarioId == usuarioId && h.FechaArchivado == null).ToListAsync();
 
@@ -65,7 +127,7 @@ public static class HabitosEndpoints
         // Endpoint que dado un id, devuelve un habito.
         grupo.MapGet("/{id:int}", async (int id, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            var habito = await BuscarHabitoAsync(id, idUsuario(usuario), db);
+            var habito = await BuscarHabitoAsync(id, IdDelUsuario(usuario), db);
 
             if (habito is null)
             {
@@ -78,12 +140,31 @@ public static class HabitosEndpoints
         // Endpoint que crea un habito.
         grupo.MapPost("/", async (GuardarHabitoDto datos, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            if (string.IsNullOrWhiteSpace(datos.Nombre))
+            string? error = ErrorEnDatos(datos);
+
+            if (error is not null)
             {
-                return Results.BadRequest("El nombre es obligatorio");
+                return Results.BadRequest(error);
             }
 
-            var habito = new Habito { UsuarioId = idUsuario(usuario), Nombre = datos.Nombre, Descripcion = datos.Descripcion, Preparacion = datos.Preparacion, Hora = datos.Hora, Dias = datos.Dias, Tipo = datos.Tipo, HabitoAntecesorId = datos.HabitoAntecesorId, ColorHabito = datos.ColorHabito, Recordatorio = datos.Recordatorio };
+            var habito = new Habito { UsuarioId = IdDelUsuario(usuario), Nombre = datos.Nombre, Descripcion = datos.Descripcion, Preparacion = datos.Preparacion, Hora = datos.Hora, Dias = datos.Dias, Tipo = datos.Tipo, HabitoAntecesorId = datos.HabitoAntecesorId, ColorHabito = datos.ColorHabito, Recordatorio = datos.Recordatorio };
+
+            if (datos.HabitoAntecesorId is not null)
+            {
+                var antecesor = await BuscarHabitoAsync(datos.HabitoAntecesorId.Value, IdDelUsuario(usuario), db);
+
+                if (antecesor is null)
+                {
+                    return Results.BadRequest("El hábito anterior no existe");
+                }
+
+                var errorAntecesor = habito.ErrorAlIrDespuesDe(antecesor);
+
+                if (errorAntecesor is not null)
+                {
+                    return Results.BadRequest(errorAntecesor);
+                }
+            }
 
             db.Habitos.Add(habito);
             await db.SaveChangesAsync();
@@ -95,12 +176,14 @@ public static class HabitosEndpoints
         // Endpoint que edita un habito.
         grupo.MapPut("/{id:int}", async (int id, GuardarHabitoDto datos, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            if (string.IsNullOrWhiteSpace(datos.Nombre))
+            string? error = ErrorEnDatos(datos);
+
+            if (error is not null)
             {
-                return Results.BadRequest("El nombre es obligatorio.");
+                return Results.BadRequest(error);
             }
 
-            var habito = await BuscarHabitoAsync(id, idUsuario(usuario), db);
+            var habito = await BuscarHabitoAsync(id, IdDelUsuario(usuario), db);
 
             if (habito is null)
             {
@@ -116,6 +199,33 @@ public static class HabitosEndpoints
             habito.Preparacion = datos.Preparacion;
             habito.Recordatorio = datos.Recordatorio;
             habito.Tipo = datos.Tipo;
+
+            string usuarioId = IdDelUsuario(usuario);
+
+            Dictionary<int, int?> antecesores = await db.Habitos.Where(h => h.UsuarioId == usuarioId).ToDictionaryAsync(h => h.Id, h => h.HabitoAntecesorId);
+
+            if (datos.HabitoAntecesorId is not null)
+            {
+                var antecesor = await BuscarHabitoAsync(datos.HabitoAntecesorId.Value, IdDelUsuario(usuario), db);
+
+                if (antecesor is null)
+                {
+                    return Results.BadRequest("El hábito anterior no existe");
+                }
+
+                var errorAntecesor = habito.ErrorAlIrDespuesDe(antecesor);
+
+                if (errorAntecesor is not null)
+                {
+                    return Results.BadRequest(errorAntecesor);
+                }
+
+                if (Cadena.ProvocaCiclo(habito.Id, datos.HabitoAntecesorId.Value, antecesores))
+                {
+                    return Results.BadRequest("Esto provocaría un ciclo, un habito sería anterior a si mismo");
+                }
+            }
+
             await db.SaveChangesAsync();
 
             return Results.NoContent();
@@ -124,7 +234,7 @@ public static class HabitosEndpoints
         // Endpoint de eliminacion de habito, usa borrado logico
         grupo.MapDelete("/{id:int}", async (int id, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            var habito = await BuscarHabitoAsync(id, idUsuario(usuario), db);
+            var habito = await BuscarHabitoAsync(id, IdDelUsuario(usuario), db);
 
             if (habito is null)
             {
@@ -140,7 +250,7 @@ public static class HabitosEndpoints
         // Endpoint que marca un habito como hecho en una fecha.
         grupo.MapPut("/{id:int}/registros/{fecha:datetime}", async (int id, DateOnly fecha, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            var habito = await BuscarHabitoAsync(id, idUsuario(usuario), db);
+            var habito = await BuscarHabitoAsync(id, IdDelUsuario(usuario), db);
 
             if (habito is null)
             {
@@ -161,7 +271,7 @@ public static class HabitosEndpoints
         // Endpoint que desmarca un habito en una fecha.
         grupo.MapDelete("/{id:int}/registros/{fecha:datetime}", async (int id, DateOnly fecha, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            var habito = await BuscarHabitoAsync(id, idUsuario(usuario), db);
+            var habito = await BuscarHabitoAsync(id, IdDelUsuario(usuario), db);
 
             if (habito is null)
             {

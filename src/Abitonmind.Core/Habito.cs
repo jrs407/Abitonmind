@@ -124,6 +124,11 @@ public class Habito
         {
             return "Un habito solo puede hacerse si comparte los dias con su antecesor";
         }
+
+        if(Dias == DiasSemana.Ninguno)
+        {
+            return "Un habito sin días no puede ir en una cadena";
+        }
         
         return null;
     }

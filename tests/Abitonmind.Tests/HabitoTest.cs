@@ -160,4 +160,32 @@ public class HabitoTest
 
         Assert.NotNull(result);
     }
+
+    /// <summary>
+    /// Comprueba que no se pueda poner un hijo sin dias en una cadena.
+    /// </summary>
+    [Fact]
+    public void ErrorAlIrDespuesDe_DevuelveString_SiHijoDiasNinguno()
+    {
+        var habito1 = new Habito { Id = 1, Nombre = "Hacer la cama", Dias = DiasSemana.Lunes | DiasSemana.Jueves | DiasSemana.Domingo };
+        var habito2 = new Habito { Id = 2, Nombre = "Hacer la cama", Dias = DiasSemana.Ninguno, HabitoAntecesorId = habito1.Id };
+
+        var result = habito2.ErrorAlIrDespuesDe(habito1);
+
+        Assert.NotNull(result);
+    }
+
+    /// <summary>
+    /// Comprueba que devuelva un string si tanto el padre como el hijo tienen como dias ninguno.
+    /// </summary>
+    [Fact]
+    public void ErrorAlIrDespuesDe_DevuelveString_SiLosDosHabitosDiaNinguno()
+    {
+        var habito1 = new Habito { Id = 1, Nombre = "Hacer la cama", Dias = DiasSemana.Ninguno };
+        var habito2 = new Habito { Id = 2, Nombre = "Hacer la cama", Dias = DiasSemana.Ninguno, HabitoAntecesorId = habito1.Id };
+
+        var result = habito2.ErrorAlIrDespuesDe(habito1);
+
+        Assert.NotNull(result);
+    }
 }
