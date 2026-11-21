@@ -202,11 +202,11 @@ public static class HabitosEndpoints
 
             string usuarioId = IdDelUsuario(usuario);
 
-            Dictionary<int, int?> antecesores = await db.Habitos.Where(h => h.UsuarioId == usuarioId).ToDictionaryAsync(h => h.Id, h => h.HabitoAntecesorId);
+            Dictionary<int, int?> habitos = await db.Habitos.Where(h => h.UsuarioId == usuarioId).ToDictionaryAsync(h => h.Id, h => h.HabitoAntecesorId);
 
             if (datos.HabitoAntecesorId is not null)
             {
-                var antecesor = await BuscarHabitoAsync(datos.HabitoAntecesorId.Value, IdDelUsuario(usuario), db);
+                var antecesor = await BuscarHabitoAsync(datos.HabitoAntecesorId.Value, usuarioId, db);
 
                 if (antecesor is null)
                 {
@@ -220,9 +220,24 @@ public static class HabitosEndpoints
                     return Results.BadRequest(errorAntecesor);
                 }
 
-                if (Cadena.ProvocaCiclo(habito.Id, datos.HabitoAntecesorId.Value, antecesores))
+                if (Cadena.ProvocaCiclo(habito.Id, datos.HabitoAntecesorId.Value, habitos))
                 {
                     return Results.BadRequest("Esto provocaría un ciclo, un habito sería anterior a si mismo");
+                }
+            }
+
+            List<int> idsHabitosPosteriores = Cadena.HabitosPosteriores(habito.Id, habitos);
+
+            List<Habito> habitosPosteriores = await db.Habitos.Where(h => idsHabitosPosteriores.Contains(h.Id) && h.FechaArchivado == null).ToListAsync();
+
+
+            foreach (var habitoPosterior in habitosPosteriores)
+            {
+                habitoPosterior.Dias &= habito.Dias;
+
+                if (habitoPosterior.Dias == DiasSemana.Ninguno)
+                {
+                    habitoPosterior.FechaArchivado = DateOnly.FromDateTime(DateTime.Today);
                 }
             }
 
@@ -234,14 +249,28 @@ public static class HabitosEndpoints
         // Endpoint de eliminacion de habito, usa borrado logico
         grupo.MapDelete("/{id:int}", async (int id, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            var habito = await BuscarHabitoAsync(id, IdDelUsuario(usuario), db);
+            string usuarioId = IdDelUsuario(usuario);
+            var habito = await BuscarHabitoAsync(id, usuarioId, db);
 
             if (habito is null)
             {
                 return Results.NotFound();
             }
 
-            habito.FechaArchivado = DateOnly.FromDateTime(DateTime.Today);
+            Dictionary<int, int?> habitos = await db.Habitos.Where(h => h.UsuarioId == usuarioId).ToDictionaryAsync(h => h.Id, h => h.HabitoAntecesorId);
+
+            List<int> idsHabitosPosteriores = Cadena.HabitosPosteriores(habito.Id, habitos);
+
+            List<Habito> habitosPosteriores = await db.Habitos.Where(h => idsHabitosPosteriores.Contains(h.Id) && h.FechaArchivado == null).ToListAsync();
+
+            var hoy = DateOnly.FromDateTime(DateTime.Today);
+            habito.FechaArchivado = hoy;
+
+            foreach (var habitoPosterior in habitosPosteriores)
+            {
+                habitoPosterior.FechaArchivado = hoy;
+            }
+
             await db.SaveChangesAsync();
 
             return Results.NoContent();
