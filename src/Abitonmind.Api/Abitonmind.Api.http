@@ -157,3 +157,966 @@ Authorization: Bearer {{loginOtroUsuario.response.body.$.accessToken}}
 # @name eliminarHabito
 DELETE {{host}}/api/habitos/{{crearHabito.response.body.$.id}}
 Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Crear Levantarse.
+# @name levantarse
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Levantarse",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 31,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear lavarse los dientes despues de evantarse.
+# @name lavarseDientes
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Lavarse los dientes",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 5,
+    "tipo" : null,
+    "habitoAntecesorId" : {{levantarse.response.body.$.id}},
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear despues de levantarse con hora.
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Desayunar",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : "07:30:00",
+    "dias" : 31,
+    "tipo" : null,
+    "habitoAntecesorId" : {{levantarse.response.body.$.id}},
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear despues de levantarse con un dia que levantarse no tiene.
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Desayunar",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 32,
+    "tipo" : null,
+    "habitoAntecesorId" : {{levantarse.response.body.$.id}},
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear despues de un habito que no existe.
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Desayunar",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 31,
+    "tipo" : null,
+    "habitoAntecesorId" : 9999,
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear hacer la cama despues de levantarse con los mismos dias.
+# @name hacerCama
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Hacer la cama",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 31,
+    "tipo" : null,
+    "habitoAntecesorId" : {{levantarse.response.body.$.id}},
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Editar levantarse para que vaya despues de lavarse los dientes.
+PUT {{host}}/api/habitos/{{levantarse.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Levantarse",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 5,
+    "tipo" : null,
+    "habitoAntecesorId" : {{lavarseDientes.response.body.$.id}},
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Editar levantarse para que vaya despues de si mismo.
+PUT {{host}}/api/habitos/{{levantarse.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Levantarse",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 31,
+    "tipo" : null,
+    "habitoAntecesorId" : {{levantarse.response.body.$.id}},
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear despues de levantarse sin dias.
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Desayunar",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 0,
+    "tipo" : null,
+    "habitoAntecesorId" : {{levantarse.response.body.$.id}},
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear ordenar el trastero sin dias.
+# @name ordenarTrastero
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Ordenar el trastero",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 0,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear despues de ordenar el trastero sin dias.
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Tirar lo que sobra",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 0,
+    "tipo" : null,
+    "habitoAntecesorId" : {{ordenarTrastero.response.body.$.id}},
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Editar lavarse los dientes a sin dias sin quitarle el anterior.
+PUT {{host}}/api/habitos/{{lavarseDientes.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Lavarse los dientes",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 0,
+    "tipo" : null,
+    "habitoAntecesorId" : {{levantarse.response.body.$.id}},
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear ducharse todos los dias.
+# @name ducharse
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Ducharse",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 127,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear secarse despues de Ducharse.
+# @name secarse
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Secarse",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 127,
+    "tipo" : null,
+    "habitoAntecesorId" : {{ducharse.response.body.$.id}},
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Marcar secarse hoy sin haber marcado ducharse.
+PUT {{host}}/api/habitos/{{secarse.response.body.$.id}}/registros/{{$localDatetime "YYYY-MM-DD"}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Marcar secarse ayer.
+PUT {{host}}/api/habitos/{{secarse.response.body.$.id}}/registros/{{$localDatetime "YYYY-MM-DD" -1 d}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Marcar secarse el dia siguiente.
+PUT {{host}}/api/habitos/{{secarse.response.body.$.id}}/registros/{{$localDatetime "YYYY-MM-DD" 1 d}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Marcar ayer un habito que no existe.
+PUT {{host}}/api/habitos/9999/registros/{{$localDatetime "YYYY-MM-DD" -1 d}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Desmarcar Secarse ayer.
+DELETE {{host}}/api/habitos/{{secarse.response.body.$.id}}/registros/{{$localDatetime "YYYY-MM-DD" -1 d}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Desmarcar Secarse hoy.
+DELETE {{host}}/api/habitos/{{secarse.response.body.$.id}}/registros/{{$localDatetime "YYYY-MM-DD"}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Marcar hoy ordenar el trastero.
+PUT {{host}}/api/habitos/{{ordenarTrastero.response.body.$.id}}/registros/{{$localDatetime "YYYY-MM-DD"}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Crear regar las plantas todos los dias menos hoy.
+# @name regarPlantas
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Regar las plantas",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 63,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Marcar hoy regar las plantas.
+PUT {{host}}/api/habitos/{{regarPlantas.response.body.$.id}}/registros/{{$localDatetime "YYYY-MM-DD"}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Desmarcar hoy regar las plantas.
+DELETE {{host}}/api/habitos/{{regarPlantas.response.body.$.id}}/registros/{{$localDatetime "YYYY-MM-DD"}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Otro usuario, crear un habito despues de levantarse.
+POST {{host}}/api/habitos
+Authorization: Bearer {{loginOtroUsuario.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Desayunar",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 31,
+    "tipo" : null,
+    "habitoAntecesorId" : {{levantarse.response.body.$.id}},
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear con color 1.
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Leer",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 31,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : 1,
+    "recordatorio" : false
+}
+
+### Crear con color 99.
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Leer",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 31,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : 99,
+    "recordatorio" : false
+}
+
+### Crear con color 0.
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Leer",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 31,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : 0,
+    "recordatorio" : false
+}
+
+### Crear sin color.
+# @name habitoSinColor
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Leer",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 31,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Ver el habito sin color.
+GET {{host}}/api/habitos/{{habitoSinColor.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Crear con tipo 7.
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Leer",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 31,
+    "tipo" : 7,
+    "habitoAntecesorId" : null,
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear con un nombre de 101 caracteres.
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 31,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear con una preparacion de 101 caracteres.
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Leer",
+    "descripcion" : null,
+    "preparacion" : "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "hora" : null,
+    "dias" : 31,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear con dias 0.
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Leer",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 0,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear con dias 128.
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Leer",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 128,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear con dias 127.
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Leer",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 127,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear sin hora, sin anterior y con recordatorio.
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Leer",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 31,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : null,
+    "recordatorio" : true
+}
+
+### Crear con hora y con recordatorio.
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Leer",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : "22:00:00",
+    "dias" : 31,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : null,
+    "recordatorio" : true
+}
+
+### Crear despues de levantarse con recordatorio.
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Desayunar",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 31,
+    "tipo" : null,
+    "habitoAntecesorId" : {{levantarse.response.body.$.id}},
+    "colorHabito" : null,
+    "recordatorio" : true
+}
+
+### Crear paso minimo meditar.
+# @name pasoMeditar
+POST {{host}}/api/pasosminimos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Meditar",
+    "descripcion" : "Un minuto respirando despacio",
+    "preparacion" : "Sentarse en un sitio tranquilo",
+    "colorPasoMinimo" : null
+}
+
+### Crear paso minimo sin nombre.
+POST {{host}}/api/pasosminimos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "",
+    "descripcion" : null,
+    "preparacion" : null,
+    "colorPasoMinimo" : null
+}
+
+### Crear paso minimo con color 99.
+POST {{host}}/api/pasosminimos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Meditar",
+    "descripcion" : null,
+    "preparacion" : null,
+    "colorPasoMinimo" : 99
+}
+
+### Sumar a meditar por primera vez.
+POST {{host}}/api/pasosminimos/{{pasoMeditar.response.body.$.id}}/sumar
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Sumar a meditar por segunda vez.
+POST {{host}}/api/pasosminimos/{{pasoMeditar.response.body.$.id}}/sumar
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Sumar a meditar por tercera vez.
+POST {{host}}/api/pasosminimos/{{pasoMeditar.response.body.$.id}}/sumar
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Restar a meditar por primera vez.
+POST {{host}}/api/pasosminimos/{{pasoMeditar.response.body.$.id}}/restar
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Restar a meditar por segunda vez.
+POST {{host}}/api/pasosminimos/{{pasoMeditar.response.body.$.id}}/restar
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Restar a meditar por tercera vez.
+POST {{host}}/api/pasosminimos/{{pasoMeditar.response.body.$.id}}/restar
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Restar a meditar con repeticion 0.
+POST {{host}}/api/pasosminimos/{{pasoMeditar.response.body.$.id}}/restar
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Ver meditar despues de restar.
+GET {{host}}/api/pasosminimos/{{pasoMeditar.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Editar meditar mandando repeticion 50.
+PUT {{host}}/api/pasosminimos/{{pasoMeditar.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Meditar",
+    "descripcion" : "Un minuto respirando despacio",
+    "preparacion" : "Sentarse en un sitio tranquilo",
+    "colorPasoMinimo" : null,
+    "repeticion" : 50
+}
+
+### Ver meditar despues de editar.
+GET {{host}}/api/pasosminimos/{{pasoMeditar.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Listar habitos, meditar no sale.
+GET {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Otro usuario, ver Meditar.
+GET {{host}}/api/pasosminimos/{{pasoMeditar.response.body.$.id}}
+Authorization: Bearer {{loginOtroUsuario.response.body.$.accessToken}}
+
+### Otro usuario, sumar a Meditar.
+POST {{host}}/api/pasosminimos/{{pasoMeditar.response.body.$.id}}/sumar
+Authorization: Bearer {{loginOtroUsuario.response.body.$.accessToken}}
+
+### Archivar meditar.
+DELETE {{host}}/api/pasosminimos/{{pasoMeditar.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Ver meditar archivado.
+GET {{host}}/api/pasosminimos/{{pasoMeditar.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Sumar a meditar archivado.
+POST {{host}}/api/pasosminimos/{{pasoMeditar.response.body.$.id}}/sumar
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Listar pasos minimos, meditar no sale.
+GET {{host}}/api/pasosminimos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Crear afeitarse despues de lavarse los dientes.
+# @name afeitarse
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Afeitarse",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 5,
+    "tipo" : null,
+    "habitoAntecesorId" : {{lavarseDientes.response.body.$.id}},
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Archivar levantarse.
+DELETE {{host}}/api/habitos/{{levantarse.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Ver lavarse los dientes.
+GET {{host}}/api/habitos/{{lavarseDientes.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Ver afeitarse.
+GET {{host}}/api/habitos/{{afeitarse.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Ver hacer la cama.
+GET {{host}}/api/habitos/{{hacerCama.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Listar habitos, no sale ninguno de los cuatro.
+GET {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Crear despertar de lunes a viernes.
+# @name despertar
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Despertar",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 31,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear estirar despues de despertar.
+# @name estirar
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Estirar",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 5,
+    "tipo" : null,
+    "habitoAntecesorId" : {{despertar.response.body.$.id}},
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Crear meditar despues de estirar.
+# @name meditar
+POST {{host}}/api/habitos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Meditar",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 4,
+    "tipo" : null,
+    "habitoAntecesorId" : {{estirar.response.body.$.id}},
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Editar despertar a dias 29.
+PUT {{host}}/api/habitos/{{despertar.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Despertar",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 29,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Ver estirar despues de dias 29.
+GET {{host}}/api/habitos/{{estirar.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Ver meditar despues de dias 29.
+GET {{host}}/api/habitos/{{meditar.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Editar despertar a dias 25.
+PUT {{host}}/api/habitos/{{despertar.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Despertar",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 25,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Ver estirar despues de dias 25.
+GET {{host}}/api/habitos/{{estirar.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Ver meditar despues de dias 25.
+GET {{host}}/api/habitos/{{meditar.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Editar despertar a dias 24.
+PUT {{host}}/api/habitos/{{despertar.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "nombre" : "Despertar",
+    "descripcion" : null,
+    "preparacion" : null,
+    "hora" : null,
+    "dias" : 24,
+    "tipo" : null,
+    "habitoAntecesorId" : null,
+    "colorHabito" : null,
+    "recordatorio" : false
+}
+
+### Ver estirar despues de dias 24.
+GET {{host}}/api/habitos/{{estirar.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Ver despertar.
+GET {{host}}/api/habitos/{{despertar.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Ver identidad.
+GET {{host}}/api/identidad
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Editar identidad con 255 caracteres.
+PUT {{host}}/api/identidad
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "identidad" : "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}
+
+### Editar identidad con 256 caracteres.
+PUT {{host}}/api/identidad
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "identidad" : "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}
+
+### Editar identidad.
+PUT {{host}}/api/identidad
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "identidad" : "Soy una persona que cuida su energía"
+}
+
+### Ver identidad editada.
+GET {{host}}/api/identidad
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Otro usuario, ver identidad.
+GET {{host}}/api/identidad
+Authorization: Bearer {{loginOtroUsuario.response.body.$.accessToken}}
+
+### Editar identidad solo con espacios.
+PUT {{host}}/api/identidad
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "identidad" : "   "
+}
+
+### Ver identidad despues de mandar espacios.
+GET {{host}}/api/identidad
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Listar frases.
+GET {{host}}/api/frases
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Listar frases sin token.
+GET {{host}}/api/frases
+
+### Ver preferencias.
+GET {{host}}/api/preferencias
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Editar preferencias.
+PUT {{host}}/api/preferencias
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "habitoPlegado" : true,
+    "tipoRacha" : 1,
+    "zonaHoraria" : "Europe/Madrid"
+}
+
+### Ver preferencias editadas.
+GET {{host}}/api/preferencias
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Editar preferencias con regla 99.
+PUT {{host}}/api/preferencias
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "habitoPlegado" : true,
+    "tipoRacha" : 99,
+    "zonaHoraria" : "Europe/Madrid"
+}
+
+### Editar preferencias con zona Marte/Olimpo.
+PUT {{host}}/api/preferencias
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "habitoPlegado" : true,
+    "tipoRacha" : 1,
+    "zonaHoraria" : "Marte/Olimpo"
+}
+
+### Otro usuario, ver preferencias.
+GET {{host}}/api/preferencias
+Authorization: Bearer {{loginOtroUsuario.response.body.$.accessToken}}
+
+### Ver preferencias sin token.
+GET {{host}}/api/preferencias
+
+### Editar preferencias con zona Pacific/Kiritimati.
+PUT {{host}}/api/preferencias
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "habitoPlegado" : true,
+    "tipoRacha" : 1,
+    "zonaHoraria" : "Pacific/Kiritimati"
+}
+
+### Marcar ducharse el dia siguiente con zona Pacific/Kiritimati.
+PUT {{host}}/api/habitos/{{ducharse.response.body.$.id}}/registros/{{$localDatetime "YYYY-MM-DD" 1 d}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Marcar ducharse hoy con zona Pacific/Kiritimati.
+PUT {{host}}/api/habitos/{{ducharse.response.body.$.id}}/registros/{{$localDatetime "YYYY-MM-DD"}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Desmarcar ducharse el dia siguiente con zona Pacific/Kiritimati.
+DELETE {{host}}/api/habitos/{{ducharse.response.body.$.id}}/registros/{{$localDatetime "YYYY-MM-DD" 1 d}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Volver a la zona Europe/Madrid.
+PUT {{host}}/api/preferencias
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "habitoPlegado" : true,
+    "tipoRacha" : 1,
+    "zonaHoraria" : "Europe/Madrid"
+}
