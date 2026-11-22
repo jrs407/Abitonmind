@@ -13,7 +13,7 @@ public static class HabitosEndpoints
 {
 
     /// <summary>
-    /// Obtiene el token del usuario.
+    /// Obtiene el id del usuario.
     /// </summary>
     /// <param name="usuario"></param>
     /// <returns></returns>

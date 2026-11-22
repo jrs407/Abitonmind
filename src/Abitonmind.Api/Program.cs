@@ -36,4 +36,6 @@ app.MapGroup("/api/cuenta").MapIdentityApi<Usuario>();
 
 app.MapHabitos();
 
+app.MapPasosMinimos();
+
 app.Run();
