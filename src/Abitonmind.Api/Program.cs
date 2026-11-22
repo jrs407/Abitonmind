@@ -40,4 +40,6 @@ app.MapPasosMinimos();
 
 app.MapUsuarios();
 
+app.MapFrases();
+
 app.Run();
