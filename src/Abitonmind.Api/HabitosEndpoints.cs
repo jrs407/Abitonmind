@@ -205,7 +205,9 @@ public static class HabitosEndpoints
                 return Results.BadRequest(error);
             }
 
-            var habito = await BuscarHabitoAsync(id, IdDelUsuario(usuario), db);
+            string usuarioId = IdDelUsuario(usuario);
+
+            var habito = await BuscarHabitoAsync(id, usuarioId, db);
 
             if (habito is null)
             {
@@ -221,8 +223,6 @@ public static class HabitosEndpoints
             habito.Preparacion = datos.Preparacion;
             habito.Recordatorio = datos.Recordatorio;
             habito.Tipo = datos.Tipo;
-
-            string usuarioId = IdDelUsuario(usuario);
 
             Dictionary<int, int?> habitos = await db.Habitos.Where(h => h.UsuarioId == usuarioId).ToDictionaryAsync(h => h.Id, h => h.HabitoAntecesorId);
 
