@@ -109,7 +109,7 @@ public static class HabitosEndpoints
     /// <param name="idUsuario"></param>
     /// <param name="db"></param>
     /// <returns></returns>
-    public static async Task<DateOnly> DiaHoyUsuarioAsync(string idUsuario, AbitonmindContext db)
+    private static async Task<DateOnly> DiaHoyUsuarioAsync(string idUsuario, AbitonmindContext db)
     {
         string? zonaHoraria = await db.Users.Where(u => u.Id == idUsuario).Select(u => u.ZonaHoraria).FirstOrDefaultAsync();
 

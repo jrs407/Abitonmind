@@ -93,7 +93,7 @@ public static class PasosMinimosEndpoints
     /// <param name="idUsuario"></param>
     /// <param name="db"></param>
     /// <returns></returns>
-    public static async Task<DateOnly> DiaHoyUsuarioAsync(string idUsuario, AbitonmindContext db)
+    private static async Task<DateOnly> DiaHoyUsuarioAsync(string idUsuario, AbitonmindContext db)
     {
         string? zonaHoraria = await db.Users.Where(u => u.Id == idUsuario).Select(u => u.ZonaHoraria).FirstOrDefaultAsync();
 
@@ -123,9 +123,9 @@ public static class PasosMinimosEndpoints
         {
             string usuarioId = IdDelUsuario(usuario);
 
-            List<PasoMinimo> pasoMinimos = await db.PasosMinimos.Where(pm => pm.UsuarioId == usuarioId && pm.FechaArchivado == null).ToListAsync();
+            List<PasoMinimo> pasosMinimos = await db.PasosMinimos.Where(pm => pm.UsuarioId == usuarioId && pm.FechaArchivado == null).ToListAsync();
 
-            List<PasoMinimoDto> result = pasoMinimos.Select(pm => PasoMinimoToDto(pm)).ToList();
+            List<PasoMinimoDto> result = pasosMinimos.Select(pm => PasoMinimoToDto(pm)).ToList();
 
             return Results.Ok(result);
         });
