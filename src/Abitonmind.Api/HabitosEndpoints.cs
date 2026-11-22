@@ -104,6 +104,28 @@ public static class HabitosEndpoints
     }
 
     /// <summary>
+    /// Obtiene la fecha de hoy dado un usuario, si el usuario no ha especificado una zona horaria, se elige la del servidor.
+    /// </summary>
+    /// <param name="idUsuario"></param>
+    /// <param name="db"></param>
+    /// <returns></returns>
+    public static async Task<DateOnly> DiaHoyUsuarioAsync(string idUsuario, AbitonmindContext db)
+    {
+        string? zonaHoraria = await db.Users.Where(u => u.Id == idUsuario).Select(u => u.ZonaHoraria).FirstOrDefaultAsync();
+
+        TimeZoneInfo zona = TimeZoneInfo.Local;
+
+        if (zonaHoraria is not null)
+        {
+            zona = TimeZoneInfo.FindSystemTimeZoneById(zonaHoraria);
+        }
+
+        DateTimeOffset ahoraAlli = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, zona);
+
+        return DateOnly.FromDateTime(ahoraAlli.DateTime);
+    }
+
+    /// <summary>
     /// Creación del mapa de endpoints de habitos.
     /// </summary>
     /// <param name="app"></param>
@@ -230,6 +252,7 @@ public static class HabitosEndpoints
 
             List<Habito> habitosPosteriores = await db.Habitos.Where(h => idsHabitosPosteriores.Contains(h.Id) && h.FechaArchivado == null).ToListAsync();
 
+            DateOnly hoy = await DiaHoyUsuarioAsync(usuarioId, db);
 
             foreach (var habitoPosterior in habitosPosteriores)
             {
@@ -237,7 +260,7 @@ public static class HabitosEndpoints
 
                 if (habitoPosterior.Dias == DiasSemana.Ninguno)
                 {
-                    habitoPosterior.FechaArchivado = DateOnly.FromDateTime(DateTime.Today);
+                    habitoPosterior.FechaArchivado = hoy;
                 }
             }
 
@@ -263,7 +286,8 @@ public static class HabitosEndpoints
 
             List<Habito> habitosPosteriores = await db.Habitos.Where(h => idsHabitosPosteriores.Contains(h.Id) && h.FechaArchivado == null).ToListAsync();
 
-            var hoy = DateOnly.FromDateTime(DateTime.Today);
+            DateOnly hoy = await DiaHoyUsuarioAsync(usuarioId, db);
+
             habito.FechaArchivado = hoy;
 
             foreach (var habitoPosterior in habitosPosteriores)
@@ -279,11 +303,25 @@ public static class HabitosEndpoints
         // Endpoint que marca un habito como hecho en una fecha.
         grupo.MapPut("/{id:int}/registros/{fecha:datetime}", async (int id, DateOnly fecha, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            var habito = await BuscarHabitoAsync(id, IdDelUsuario(usuario), db);
+            string usuarioId = IdDelUsuario(usuario);
+
+            var habito = await BuscarHabitoAsync(id, usuarioId, db);
 
             if (habito is null)
             {
                 return Results.NotFound();
+            }
+
+            DateOnly hoy = await DiaHoyUsuarioAsync(usuarioId, db);
+
+            if (fecha != hoy)
+            {
+                return Results.BadRequest("Solo se puede marcar el día de hoy.");
+            }
+
+            if (!habito.TocaEl(hoy))
+            {
+                return Results.BadRequest("Este habito no toca hoy.");
             }
 
             bool yaMarcado = await db.RegistroHabitos.AnyAsync(rh => rh.HabitoId == id && rh.Fecha == fecha);
@@ -300,11 +338,19 @@ public static class HabitosEndpoints
         // Endpoint que desmarca un habito en una fecha.
         grupo.MapDelete("/{id:int}/registros/{fecha:datetime}", async (int id, DateOnly fecha, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            var habito = await BuscarHabitoAsync(id, IdDelUsuario(usuario), db);
+            string usuarioId = IdDelUsuario(usuario); 
+            var habito = await BuscarHabitoAsync(id, usuarioId, db);
 
             if (habito is null)
             {
                 return Results.NotFound();
+            }
+
+            DateOnly hoy = await DiaHoyUsuarioAsync(usuarioId, db);
+
+            if (fecha != hoy)
+            {
+                return Results.BadRequest("Solo se puede marcar el día de hoy.");
             }
 
             var registroHabito = await db.RegistroHabitos.FirstOrDefaultAsync(rh => rh.HabitoId == id && rh.Fecha == fecha);
