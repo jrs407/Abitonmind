@@ -38,4 +38,6 @@ app.MapHabitos();
 
 app.MapPasosMinimos();
 
+app.MapUsuarios();
+
 app.Run();
