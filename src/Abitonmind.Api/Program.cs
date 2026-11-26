@@ -73,6 +73,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+
+app.UseAuthorization();
+
 app.MapGroup("/api/cuenta").MapIdentityApi<Usuario>();
 
 app.MapHabitos();

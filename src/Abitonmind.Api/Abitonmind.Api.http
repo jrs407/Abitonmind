@@ -1120,3 +1120,85 @@ Content-Type: application/json
     "tipoRacha" : 1,
     "zonaHoraria" : "Europe/Madrid"
 }
+
+### Registrar usuario admin (si ya existe, 400).
+POST {{host}}/api/cuenta/register
+Content-Type: application/json
+
+{
+    "email" : "pruebaAdmin@example.com",
+    "password" : "Contrasena1234."
+}
+
+### Login admin antes de tener el rol.
+# @name loginAdminViejo
+POST {{host}}/api/cuenta/login
+Content-Type: application/json
+
+{
+    "email" : "pruebaAdmin@example.com",
+    "password" : "Contrasena1234."
+}
+
+### Ver yo antes de tener el rol (false).
+GET {{host}}/api/yo
+Authorization: Bearer {{loginAdminViejo.response.body.$.accessToken}}
+
+### Ver yo con el token viejo, con pruebaAdmin ya en el secreto (false).
+GET {{host}}/api/yo
+Authorization: Bearer {{loginAdminViejo.response.body.$.accessToken}}
+
+### Crear frase con el token viejo (403).
+POST {{host}}/api/frases
+Authorization: Bearer {{loginAdminViejo.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "texto" : "Frase de prueba del admin"
+}
+
+### Login admin con el rol.
+# @name loginAdmin
+POST {{host}}/api/cuenta/login
+Content-Type: application/json
+
+{
+    "email" : "pruebaAdmin@example.com",
+    "password" : "Contrasena1234."
+}
+
+### Ver yo con el token nuevo (true).
+GET {{host}}/api/yo
+Authorization: Bearer {{loginAdmin.response.body.$.accessToken}}
+
+### Crear frase con el token nuevo (201).
+# @name nuevaFrase
+POST {{host}}/api/frases
+Authorization: Bearer {{loginAdmin.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+    "texto" : "Frase de prueba del admin"
+}
+
+### Eliminar la frase de prueba (204).
+DELETE {{host}}/api/frases/{{nuevaFrase.response.body.$.id}}
+Authorization: Bearer {{loginAdmin.response.body.$.accessToken}}
+
+### Ver yo con el token nuevo, con nadie ya en el secreto (true).
+GET {{host}}/api/yo
+Authorization: Bearer {{loginAdmin.response.body.$.accessToken}}
+
+### Login admin sin el rol.
+# @name loginAdminSinRol
+POST {{host}}/api/cuenta/login
+Content-Type: application/json
+
+{
+    "email" : "pruebaAdmin@example.com",
+    "password" : "Contrasena1234."
+}
+
+### Ver yo con el ultimo token (false).
+GET {{host}}/api/yo
+Authorization: Bearer {{loginAdminSinRol.response.body.$.accessToken}}
