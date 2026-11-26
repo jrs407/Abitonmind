@@ -15,9 +15,17 @@ builder.Services.AddDbContext<AbitonmindContext>(opciones => opciones.UseSqlite(
 
 builder.Services.AddIdentityApiEndpoints<Usuario>().AddRoles<IdentityRole>().AddEntityFrameworkStores<AbitonmindContext>();
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorizationBuilder().AddPolicy(Politicas.SoloAdmin, p => p.RequireRole(Roles.Admin));
+
+builder.Services.AddProblemDetails();
+
+builder.Services.AddValidation();
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
+
+app.UseStatusCodePages();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -26,7 +34,7 @@ using (var scope = app.Services.CreateScope())
 
     var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-    if(!await roles.RoleExistsAsync(Roles.Admin))
+    if (!await roles.RoleExistsAsync(Roles.Admin))
     {
         await roles.CreateAsync(new IdentityRole(Roles.Admin));
     }

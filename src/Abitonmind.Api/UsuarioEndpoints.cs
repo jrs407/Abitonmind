@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using Abitonmind.Core;
 using Abitonmind.Core.Contratos;
 using Abitonmind.Data;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
 namespace Abitonmind.Api;
@@ -52,6 +52,9 @@ public static class UsuarioEndpoints
     {
         // Ruta base del endpoint.
         var grupo = app.MapGroup("/api").RequireAuthorization();
+
+        // Sirve para obtener el rol del usuario.
+        grupo.MapGet("/yo", Yo);
 
         // Devuelve la identidad de un usuario.
         grupo.MapGet("/identidad", async (ClaimsPrincipal usuario, AbitonmindContext db) =>
@@ -143,5 +146,15 @@ public static class UsuarioEndpoints
 
             return Results.NoContent();
         });
+    }
+
+    /// <summary>
+    /// Método estático que dice si un usuario es admin.
+    /// </summary>
+    /// <param name="usuario"></param>
+    /// <returns></returns>
+    private static Ok<YoDto> Yo(ClaimsPrincipal usuario)
+    {
+        return TypedResults.Ok(new YoDto(usuario.IsInRole(Roles.Admin)));
     }
 }
