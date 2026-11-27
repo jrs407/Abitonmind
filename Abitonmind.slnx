@@ -6,6 +6,7 @@
     <Project Path="src/Abitonmind.Data/Abitonmind.Data.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Abitonmind.Api.Tests/Abitonmind.Api.Tests.csproj" />
     <Project Path="tests/Abitonmind.Tests/Abitonmind.Tests.csproj" />
   </Folder>
 </Solution>
