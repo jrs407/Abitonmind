@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Abitonmind.Api.Tests;
 
-public class AdminTests
+public class AdminTests(ContenedorPostgres postgres)
 {
     private readonly CancellationToken _ct = TestContext.Current.CancellationToken;
 
@@ -17,7 +17,7 @@ public class AdminTests
     [Fact]
     public async Task CambiarElSecreto_ElAnteriorDejaDeSerlo_YElNuevoLoEs()
     {
-        await using var api = new AbitonmindFactory();
+        await using var api = new AbitonmindFactory(postgres);
         await api.ClienteAdminAsync();
         await api.ClienteConSesionAsync("otro@example.com");
 
@@ -38,7 +38,7 @@ public class AdminTests
     [Fact]
     public async Task QuitarElSecreto_ElAnteriorDejaDeSerlo()
     {
-        await using var api = new AbitonmindFactory();
+        await using var api = new AbitonmindFactory(postgres);
         await api.ClienteAdminAsync();
 
         WebApplicationFactory<Program> sinSecreto = api.WithWebHostBuilder(b => b.UseSetting("Admin:Email", null));
@@ -55,7 +55,7 @@ public class AdminTests
     [Fact]
     public async Task BorrarLaUltimaFrase_Da400ConSuType()
     {
-        await using var api = new AbitonmindFactory();
+        await using var api = new AbitonmindFactory(postgres);
         HttpClient admin = await api.ClienteAdminAsync();
         List<FraseDto> frases = (await admin.GetFromJsonAsync<List<FraseDto>>("/api/frases", _ct))!;
 

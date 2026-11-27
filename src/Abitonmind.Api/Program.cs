@@ -9,9 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-string cadena = builder.Configuration.GetConnectionString("Abitonmind")!;
+string cadena = builder.Configuration.GetConnectionString("Abitonmind")
+    ?? throw new InvalidOperationException("Falta la cadena de conexión 'Abitonmind'. Ponla con dotnet user-secrets.");
 
-builder.Services.AddDbContext<AbitonmindContext>(opciones => opciones.UseSqlite(cadena));
+builder.Services.AddDbContext<AbitonmindContext>(opciones => opciones.UseNpgsql(cadena));
 
 builder.Services.AddIdentityApiEndpoints<Usuario>().AddRoles<IdentityRole>().AddEntityFrameworkStores<AbitonmindContext>();
 
