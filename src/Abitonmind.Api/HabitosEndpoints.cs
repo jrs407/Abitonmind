@@ -13,16 +13,6 @@ public static class HabitosEndpoints
 {
 
     /// <summary>
-    /// Obtiene el id del usuario.
-    /// </summary>
-    /// <param name="usuario"></param>
-    /// <returns></returns>
-    private static string IdDelUsuario(ClaimsPrincipal usuario)
-    {
-        return usuario.FindFirstValue(ClaimTypes.NameIdentifier)!;
-    }
-
-    /// <summary>
     /// Transforma un objeto de la clase Habito en HabitoDto.
     /// </summary>
     /// <param name="habito"></param>
@@ -104,28 +94,6 @@ public static class HabitosEndpoints
     }
 
     /// <summary>
-    /// Obtiene la fecha de hoy dado un usuario, si el usuario no ha especificado una zona horaria, se elige la del servidor.
-    /// </summary>
-    /// <param name="idUsuario"></param>
-    /// <param name="db"></param>
-    /// <returns></returns>
-    private static async Task<DateOnly> DiaHoyUsuarioAsync(string idUsuario, AbitonmindContext db)
-    {
-        string? zonaHoraria = await db.Users.Where(u => u.Id == idUsuario).Select(u => u.ZonaHoraria).FirstOrDefaultAsync();
-
-        TimeZoneInfo zona = TimeZoneInfo.Local;
-
-        if (zonaHoraria is not null)
-        {
-            zona = TimeZoneInfo.FindSystemTimeZoneById(zonaHoraria);
-        }
-
-        DateTimeOffset ahoraAlli = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, zona);
-
-        return DateOnly.FromDateTime(ahoraAlli.DateTime);
-    }
-
-    /// <summary>
     /// Creación del mapa de endpoints de habitos.
     /// </summary>
     /// <param name="app"></param>
@@ -137,7 +105,7 @@ public static class HabitosEndpoints
         // Endpoint que devuelve todos los habitos del usuario que hace la petición (sin los archivados).
         grupo.MapGet("/", async (ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            string usuarioId = IdDelUsuario(usuario);
+            string usuarioId = usuario.IdDelUsuario();
 
             List<Habito> habitos = await db.Habitos.Where(h => h.UsuarioId == usuarioId && h.FechaArchivado == null).ToListAsync();
 
@@ -149,7 +117,7 @@ public static class HabitosEndpoints
         // Endpoint que dado un id, devuelve un habito.
         grupo.MapGet("/{id:int}", async (int id, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            var habito = await BuscarHabitoAsync(id, IdDelUsuario(usuario), db);
+            var habito = await BuscarHabitoAsync(id, usuario.IdDelUsuario(), db);
 
             if (habito is null)
             {
@@ -169,11 +137,11 @@ public static class HabitosEndpoints
                 return Results.BadRequest(error);
             }
 
-            var habito = new Habito { UsuarioId = IdDelUsuario(usuario), Nombre = datos.Nombre, Descripcion = datos.Descripcion, Preparacion = datos.Preparacion, Hora = datos.Hora, Dias = datos.Dias, Tipo = datos.Tipo, HabitoAntecesorId = datos.HabitoAntecesorId, ColorHabito = datos.ColorHabito, Recordatorio = datos.Recordatorio };
+            var habito = new Habito { UsuarioId = usuario.IdDelUsuario(), Nombre = datos.Nombre, Descripcion = datos.Descripcion, Preparacion = datos.Preparacion, Hora = datos.Hora, Dias = datos.Dias, Tipo = datos.Tipo, HabitoAntecesorId = datos.HabitoAntecesorId, ColorHabito = datos.ColorHabito, Recordatorio = datos.Recordatorio };
 
             if (datos.HabitoAntecesorId is not null)
             {
-                var antecesor = await BuscarHabitoAsync(datos.HabitoAntecesorId.Value, IdDelUsuario(usuario), db);
+                var antecesor = await BuscarHabitoAsync(datos.HabitoAntecesorId.Value, usuario.IdDelUsuario(), db);
 
                 if (antecesor is null)
                 {
@@ -196,7 +164,7 @@ public static class HabitosEndpoints
         });
 
         // Endpoint que edita un habito.
-        grupo.MapPut("/{id:int}", async (int id, GuardarHabitoDto datos, ClaimsPrincipal usuario, AbitonmindContext db) =>
+        grupo.MapPut("/{id:int}", async (int id, GuardarHabitoDto datos, ClaimsPrincipal usuario, AbitonmindContext db, HoyDelUsuario hoyDelUsuario) =>
         {
             string? error = ErrorEnDatos(datos);
 
@@ -205,7 +173,7 @@ public static class HabitosEndpoints
                 return Results.BadRequest(error);
             }
 
-            string usuarioId = IdDelUsuario(usuario);
+            string usuarioId = usuario.IdDelUsuario();
 
             var habito = await BuscarHabitoAsync(id, usuarioId, db);
 
@@ -252,7 +220,7 @@ public static class HabitosEndpoints
 
             List<Habito> habitosPosteriores = await db.Habitos.Where(h => idsHabitosPosteriores.Contains(h.Id) && h.FechaArchivado == null).ToListAsync();
 
-            DateOnly hoy = await DiaHoyUsuarioAsync(usuarioId, db);
+            DateOnly hoy = await hoyDelUsuario.CalcularAsync(usuarioId);
 
             foreach (var habitoPosterior in habitosPosteriores)
             {
@@ -270,9 +238,9 @@ public static class HabitosEndpoints
         });
 
         // Endpoint de eliminacion de habito, usa borrado logico
-        grupo.MapDelete("/{id:int}", async (int id, ClaimsPrincipal usuario, AbitonmindContext db) =>
+        grupo.MapDelete("/{id:int}", async (int id, ClaimsPrincipal usuario, AbitonmindContext db, HoyDelUsuario hoyDelUsuario) =>
         {
-            string usuarioId = IdDelUsuario(usuario);
+            string usuarioId = usuario.IdDelUsuario();
             var habito = await BuscarHabitoAsync(id, usuarioId, db);
 
             if (habito is null)
@@ -286,7 +254,7 @@ public static class HabitosEndpoints
 
             List<Habito> habitosPosteriores = await db.Habitos.Where(h => idsHabitosPosteriores.Contains(h.Id) && h.FechaArchivado == null).ToListAsync();
 
-            DateOnly hoy = await DiaHoyUsuarioAsync(usuarioId, db);
+            DateOnly hoy = await hoyDelUsuario.CalcularAsync(usuarioId);
 
             habito.FechaArchivado = hoy;
 
@@ -301,9 +269,9 @@ public static class HabitosEndpoints
         });
 
         // Endpoint que marca un habito como hecho en una fecha.
-        grupo.MapPut("/{id:int}/registros/{fecha:datetime}", async (int id, DateOnly fecha, ClaimsPrincipal usuario, AbitonmindContext db) =>
+        grupo.MapPut("/{id:int}/registros/{fecha:datetime}", async (int id, DateOnly fecha, ClaimsPrincipal usuario, AbitonmindContext db, HoyDelUsuario hoyDelUsuario) =>
         {
-            string usuarioId = IdDelUsuario(usuario);
+            string usuarioId = usuario.IdDelUsuario();
 
             var habito = await BuscarHabitoAsync(id, usuarioId, db);
 
@@ -312,7 +280,7 @@ public static class HabitosEndpoints
                 return Results.NotFound();
             }
 
-            DateOnly hoy = await DiaHoyUsuarioAsync(usuarioId, db);
+            DateOnly hoy = await hoyDelUsuario.CalcularAsync(usuarioId);
 
             if (fecha != hoy)
             {
@@ -336,9 +304,9 @@ public static class HabitosEndpoints
         });
 
         // Endpoint que desmarca un habito en una fecha.
-        grupo.MapDelete("/{id:int}/registros/{fecha:datetime}", async (int id, DateOnly fecha, ClaimsPrincipal usuario, AbitonmindContext db) =>
+        grupo.MapDelete("/{id:int}/registros/{fecha:datetime}", async (int id, DateOnly fecha, ClaimsPrincipal usuario, AbitonmindContext db, HoyDelUsuario hoyDelUsuario) =>
         {
-            string usuarioId = IdDelUsuario(usuario); 
+            string usuarioId = usuario.IdDelUsuario();
             var habito = await BuscarHabitoAsync(id, usuarioId, db);
 
             if (habito is null)
@@ -346,7 +314,7 @@ public static class HabitosEndpoints
                 return Results.NotFound();
             }
 
-            DateOnly hoy = await DiaHoyUsuarioAsync(usuarioId, db);
+            DateOnly hoy = await hoyDelUsuario.CalcularAsync(usuarioId);
 
             if (fecha != hoy)
             {

@@ -12,16 +12,6 @@ namespace Abitonmind.Api;
 public static class PasosMinimosEndpoints
 {
     /// <summary>
-    /// Obtiene el id del usuario.
-    /// </summary>
-    /// <param name="usuario"></param>
-    /// <returns></returns>
-    private static string IdDelUsuario(ClaimsPrincipal usuario)
-    {
-        return usuario.FindFirstValue(ClaimTypes.NameIdentifier)!;
-    }
-
-    /// <summary>
     /// Transforma un objeto de la clase PasoMinimo en PasoMinimoDto.
     /// </summary>
     /// <param name="pasoMinimo"></param>
@@ -88,28 +78,6 @@ public static class PasosMinimosEndpoints
     }
 
     /// <summary>
-    /// Obtiene la fecha de hoy dado un usuario, si el usuario no ha especificado una zona horaria, se elige la del servidor.
-    /// </summary>
-    /// <param name="idUsuario"></param>
-    /// <param name="db"></param>
-    /// <returns></returns>
-    private static async Task<DateOnly> DiaHoyUsuarioAsync(string idUsuario, AbitonmindContext db)
-    {
-        string? zonaHoraria = await db.Users.Where(u => u.Id == idUsuario).Select(u => u.ZonaHoraria).FirstOrDefaultAsync();
-
-        TimeZoneInfo zona = TimeZoneInfo.Local;
-
-        if (zonaHoraria is not null)
-        {
-            zona = TimeZoneInfo.FindSystemTimeZoneById(zonaHoraria);
-        }
-
-        DateTimeOffset ahoraAlli = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, zona);
-
-        return DateOnly.FromDateTime(ahoraAlli.DateTime);
-    }
-
-    /// <summary>
     /// Creación del mapa de endpoints de pasos minimos.
     /// </summary>
     /// <param name="app"></param>
@@ -121,7 +89,7 @@ public static class PasosMinimosEndpoints
         // Endpoint que devuelve todos los pasos minimos del usuario que hace la petición (sin los archivados).
         grupo.MapGet("/", async (ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            string usuarioId = IdDelUsuario(usuario);
+            string usuarioId = usuario.IdDelUsuario();
 
             List<PasoMinimo> pasosMinimos = await db.PasosMinimos.Where(pm => pm.UsuarioId == usuarioId && pm.FechaArchivado == null).ToListAsync();
 
@@ -133,7 +101,7 @@ public static class PasosMinimosEndpoints
         // Endpoint que dado un id, devuelve un Paso minimo.
         grupo.MapGet("/{id:int}", async (int id, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            var pasoMinimo = await BuscarPasoMinimoAsync(id, IdDelUsuario(usuario), db);
+            var pasoMinimo = await BuscarPasoMinimoAsync(id, usuario.IdDelUsuario(), db);
 
             if (pasoMinimo is null)
             {
@@ -153,7 +121,7 @@ public static class PasosMinimosEndpoints
                 return Results.BadRequest(error);
             }
 
-            var pasoMinimo = new PasoMinimo { UsuarioId = IdDelUsuario(usuario), Nombre = datos.Nombre, Descripcion = datos.Descripcion, Preparacion = datos.Preparacion, ColorPasoMinimo = datos.ColorPasoMinimo };
+            var pasoMinimo = new PasoMinimo { UsuarioId = usuario.IdDelUsuario(), Nombre = datos.Nombre, Descripcion = datos.Descripcion, Preparacion = datos.Preparacion, ColorPasoMinimo = datos.ColorPasoMinimo };
 
             db.PasosMinimos.Add(pasoMinimo);
             await db.SaveChangesAsync();
@@ -171,7 +139,7 @@ public static class PasosMinimosEndpoints
                 return Results.BadRequest(error);
             }
 
-            string usuarioId = IdDelUsuario(usuario);
+            string usuarioId = usuario.IdDelUsuario();
 
             var pasoMinimo = await BuscarPasoMinimoAsync(id, usuarioId, db);
 
@@ -190,9 +158,9 @@ public static class PasosMinimosEndpoints
         });
 
         // Endpoint de eliminacion de un paso minimo, usa borrado logico
-        grupo.MapDelete("/{id:int}", async (int id, ClaimsPrincipal usuario, AbitonmindContext db) =>
+        grupo.MapDelete("/{id:int}", async (int id, ClaimsPrincipal usuario, AbitonmindContext db, HoyDelUsuario hoyDelUsuario) =>
         {
-            string usuarioId = IdDelUsuario(usuario);
+            string usuarioId = usuario.IdDelUsuario();
             var pasoMinimo = await BuscarPasoMinimoAsync(id, usuarioId, db);
 
             if (pasoMinimo is null)
@@ -200,7 +168,7 @@ public static class PasosMinimosEndpoints
                 return Results.NotFound();
             }
 
-            DateOnly hoy = await DiaHoyUsuarioAsync(usuarioId, db);
+            DateOnly hoy = await hoyDelUsuario.CalcularAsync(usuarioId);
 
             pasoMinimo.FechaArchivado = hoy;
 
@@ -212,7 +180,7 @@ public static class PasosMinimosEndpoints
         // Suma uno a las repeticiones de un paso minimo.
         grupo.MapPost("/{id:int}/sumar", async (int id, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            string usuarioId = IdDelUsuario(usuario);
+            string usuarioId = usuario.IdDelUsuario();
             var pasoMinimo = await BuscarPasoMinimoAsync(id, usuarioId, db);
 
             if (pasoMinimo is null)
@@ -230,7 +198,7 @@ public static class PasosMinimosEndpoints
         // Resta uno a las repeticiones de un paso minimo.
         grupo.MapPost("/{id:int}/restar", async (int id, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            string usuarioId = IdDelUsuario(usuario);
+            string usuarioId = usuario.IdDelUsuario();
             var pasoMinimo = await BuscarPasoMinimoAsync(id, usuarioId, db);
 
             if (pasoMinimo is null)

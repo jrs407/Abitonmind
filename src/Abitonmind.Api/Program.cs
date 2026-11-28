@@ -22,6 +22,10 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddValidation();
 
+builder.Services.AddSingleton(TimeProvider.System);
+
+builder.Services.AddScoped<HoyDelUsuario>(); 
+
 var app = builder.Build();
 
 app.UseExceptionHandler();

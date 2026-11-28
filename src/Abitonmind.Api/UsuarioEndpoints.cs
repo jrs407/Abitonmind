@@ -12,16 +12,6 @@ namespace Abitonmind.Api;
 public static class UsuarioEndpoints
 {
     /// <summary>
-    /// Obtiene el id del usuario.
-    /// </summary>
-    /// <param name="usuario"></param>
-    /// <returns></returns>
-    private static string IdDelUsuario(ClaimsPrincipal usuario)
-    {
-        return usuario.FindFirstValue(ClaimTypes.NameIdentifier)!;
-    }
-
-    /// <summary>
     /// Método estatico que sirve para comprobar que todos los datos son correctos.
     /// </summary>
     /// <param name="datos"></param>
@@ -59,7 +49,7 @@ public static class UsuarioEndpoints
         // Devuelve la identidad de un usuario.
         grupo.MapGet("/identidad", async (ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            string usuarioId = IdDelUsuario(usuario);
+            string usuarioId = usuario.IdDelUsuario();
 
             var cuenta = await db.Users.FirstOrDefaultAsync(u => u.Id == usuarioId);
 
@@ -74,7 +64,7 @@ public static class UsuarioEndpoints
         // Crea una identidad para un usuario.
         grupo.MapPut("/identidad", async (IdentidadDto datos, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            string usuarioId = IdDelUsuario(usuario);
+            string usuarioId = usuario.IdDelUsuario();
 
             string? identidad = null;
 
@@ -107,7 +97,7 @@ public static class UsuarioEndpoints
         // Obtiene las preferencias de un usuario.
         grupo.MapGet("/preferencias", async (ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            string usuarioId = IdDelUsuario(usuario);
+            string usuarioId = usuario.IdDelUsuario();
 
             var cuenta = await db.Users.FirstOrDefaultAsync(u => u.Id == usuarioId);
 
@@ -129,7 +119,7 @@ public static class UsuarioEndpoints
                 return Results.BadRequest(error);
             }
 
-            string usuarioId = IdDelUsuario(usuario);
+            string usuarioId = usuario.IdDelUsuario();
 
             var cuenta = await db.Users.FirstOrDefaultAsync(u => u.Id == usuarioId);
 
