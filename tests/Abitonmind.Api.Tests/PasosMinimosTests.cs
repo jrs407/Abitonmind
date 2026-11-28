@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Abitonmind.Core;
 using Abitonmind.Core.Contratos;
+using Microsoft.AspNetCore.Http;
 
 namespace Abitonmind.Api.Tests;
 
@@ -22,6 +23,27 @@ public class PasosMinimosTests(AbitonmindFactory api) : IClassFixture<Abitonmind
 
         Assert.Equal(HttpStatusCode.Created, respuesta.StatusCode);
         Assert.Equal(0, paso!.Repeticion);
+    }
+
+    /// <summary>
+    /// Los espacios del principio y del final no se guardan, y un texto con solo espacios queda en null.
+    /// El máximo se cuenta sin esos espacios: un nombre de 100 con espacios alrededor da 201.
+    /// </summary>
+    [Fact]
+    public async Task Crear_ConEspaciosEnLosExtremos_SeGuardaSinEllos()
+    {
+        HttpClient cliente = await api.ClienteNuevoAsync();
+        string nombre = new string('a', 100);
+
+        // Con "with", los textos llegan a la API tal cual, con sus espacios.
+        GuardarPasoMinimoDto datos = Meditar() with { Nombre = $"  {nombre}  ", Descripcion = "   ", Preparacion = "  Sentarse  " };
+        HttpResponseMessage respuesta = await cliente.PostAsJsonAsync("/api/pasosminimos", datos, _ct);
+        PasoMinimoDto? paso = await respuesta.Content.ReadFromJsonAsync<PasoMinimoDto>(_ct);
+
+        Assert.Equal(HttpStatusCode.Created, respuesta.StatusCode);
+        Assert.Equal(nombre, paso!.Nombre);
+        Assert.Null(paso.Descripcion);
+        Assert.Equal("Sentarse", paso.Preparacion);
     }
 
     /// <summary>
@@ -79,26 +101,28 @@ public class PasosMinimosTests(AbitonmindFactory api) : IClassFixture<Abitonmind
     }
 
     /// <summary>
-    /// Pasos que la API no tiene que aceptar.
+    /// Pasos que la API no tiene que aceptar, cada uno con el campo que tiene que fallar.
     /// </summary>
-    public static TheoryData<GuardarPasoMinimoDto> PasosNoValidos =>
+    public static TheoryData<GuardarPasoMinimoDto, string> PasosNoValidos =>
     [
-        Meditar() with { Nombre = "" },
-        Meditar() with { ColorPasoMinimo = (ColorEtiqueta)99 },
+        (Meditar() with { Nombre = "" }, "Nombre"),
+        (Meditar() with { ColorPasoMinimo = (ColorEtiqueta)99 }, "ColorPasoMinimo"),
     ];
 
     /// <summary>
-    /// Crear un paso no válido da 400.
+    /// Crear un paso no válido da 400, y la respuesta dice qué campo es el que falla.
     /// </summary>
     [Theory]
     [MemberData(nameof(PasosNoValidos))]
-    public async Task Crear_NoValido_Da400(GuardarPasoMinimoDto datos)
+    public async Task Crear_NoValido_DiceQueCampoFalla(GuardarPasoMinimoDto datos, string campo)
     {
         HttpClient cliente = await api.ClienteNuevoAsync();
 
         HttpResponseMessage respuesta = await cliente.PostAsJsonAsync("/api/pasosminimos", datos, _ct);
 
         Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+        HttpValidationProblemDetails? problema = await respuesta.Content.ReadFromJsonAsync<HttpValidationProblemDetails>(_ct);
+        Assert.Contains(campo, problema!.Errors.Keys);
     }
 
     /// <summary>

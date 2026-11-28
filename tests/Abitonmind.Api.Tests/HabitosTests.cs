@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Abitonmind.Core;
 using Abitonmind.Core.Contratos;
+using Microsoft.AspNetCore.Http;
 using static Abitonmind.Api.Tests.HabitosDePrueba;
 
 namespace Abitonmind.Api.Tests;
@@ -42,34 +43,36 @@ public class HabitosTests(AbitonmindFactory api) : IClassFixture<AbitonmindFacto
     }
 
     /// <summary>
-    /// Hábitos que la API no tiene que aceptar.
+    /// Hábitos que la API no tiene que aceptar, cada uno con el campo que tiene que fallar.
     /// </summary>
-    public static TheoryData<GuardarHabitoDto> HabitosNoValidos =>
+    public static TheoryData<GuardarHabitoDto, string> HabitosNoValidos =>
     [
-        HabitoValido(""),
-        HabitoValido("   "),
-        HabitoValido(new string('a', 101)),
-        HabitoValido("Leer") with { Descripcion = new string('a', 256) },
-        HabitoValido("Leer") with { Preparacion = new string('a', 101) },
-        HabitoValido("Leer") with { ColorHabito = (ColorEtiqueta)99 },
-        HabitoValido("Leer") with { ColorHabito = (ColorEtiqueta)0 },
-        HabitoValido("Leer") with { Tipo = (TipoHabito)7 },
-        HabitoValido("Leer") with { Dias = (DiasSemana)128 },
-        HabitoValido("Leer") with { Recordatorio = true },
+        (HabitoValido(""), "Nombre"),
+        (HabitoValido("   "), "Nombre"),
+        (HabitoValido(new string('a', 101)), "Nombre"),
+        (HabitoValido("Leer") with { Descripcion = new string('a', 256) }, "Descripcion"),
+        (HabitoValido("Leer") with { Preparacion = new string('a', 101) }, "Preparacion"),
+        (HabitoValido("Leer") with { ColorHabito = (ColorEtiqueta)99 }, "ColorHabito"),
+        (HabitoValido("Leer") with { ColorHabito = (ColorEtiqueta)0 }, "ColorHabito"),
+        (HabitoValido("Leer") with { Tipo = (TipoHabito)7 }, "Tipo"),
+        (HabitoValido("Leer") with { Dias = (DiasSemana)128 }, "Dias"),
+        (HabitoValido("Leer") with { Recordatorio = true }, "Recordatorio"),
     ];
 
     /// <summary>
-    /// Crear un hábito no válido da 400.
+    /// Crear un hábito no válido da 400, y la respuesta dice qué campo es el que falla.
     /// </summary>
     [Theory]
     [MemberData(nameof(HabitosNoValidos))]
-    public async Task Crear_NoValido_Da400(GuardarHabitoDto datos)
+    public async Task Crear_NoValido_DiceQueCampoFalla(GuardarHabitoDto datos, string campo)
     {
         HttpClient cliente = await api.ClienteNuevoAsync();
 
         HttpResponseMessage respuesta = await cliente.PostAsJsonAsync("/api/habitos", datos, _ct);
 
         Assert.Equal(HttpStatusCode.BadRequest, respuesta.StatusCode);
+        HttpValidationProblemDetails? problema = await respuesta.Content.ReadFromJsonAsync<HttpValidationProblemDetails>(_ct);
+        Assert.Contains(campo, problema!.Errors.Keys);
     }
 
     /// <summary>
@@ -95,6 +98,27 @@ public class HabitosTests(AbitonmindFactory api) : IClassFixture<AbitonmindFacto
         HttpResponseMessage respuesta = await cliente.PostAsJsonAsync("/api/habitos", datos, _ct);
 
         Assert.Equal(HttpStatusCode.Created, respuesta.StatusCode);
+    }
+
+    /// <summary>
+    /// Los espacios del principio y del final no se guardan, y un texto con solo espacios queda en null.
+    /// El máximo se cuenta sin esos espacios: un nombre de 100 con espacios alrededor da 201.
+    /// </summary>
+    [Fact]
+    public async Task Crear_ConEspaciosEnLosExtremos_SeGuardaSinEllos()
+    {
+        HttpClient cliente = await api.ClienteNuevoAsync();
+        string nombre = new string('a', 100);
+
+        // Con "with", los textos llegan a la API tal cual, con sus espacios.
+        GuardarHabitoDto datos = HabitoValido("Leer") with { Nombre = $"  {nombre}  ", Descripcion = "   ", Preparacion = "  Abrir el libro  " };
+        HttpResponseMessage creado = await cliente.PostAsJsonAsync("/api/habitos", datos, _ct);
+        HabitoDto? habito = await creado.Content.ReadFromJsonAsync<HabitoDto>(_ct);
+
+        Assert.Equal(HttpStatusCode.Created, creado.StatusCode);
+        Assert.Equal(nombre, habito!.Nombre);
+        Assert.Null(habito.Descripcion);
+        Assert.Equal("Abrir el libro", habito.Preparacion);
     }
 
     /// <summary>

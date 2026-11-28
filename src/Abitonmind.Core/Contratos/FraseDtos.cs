@@ -16,7 +16,13 @@ public record FraseDto(int Id, string Texto);
 public record GuardarFraseDto(
     [Required(ErrorMessage = "El texto es obligatorio.")]
     [MaxLength(Limites.TextoFrase, ErrorMessage = "El texto no puede pasar de {1} caracteres.")]
-    string Texto);
+    string Texto)
+{
+    /// <summary>
+    /// El texto, sin espacios al principio ni al final. Si solo tenía espacios, queda vacío y [Required] lo para.
+    /// </summary>
+    public string Texto { get; init; } = Textos.Limpio(Texto) ?? "";
+}
 
 /// <summary>
 /// Sirve para saber si un usuario es admin.

@@ -127,6 +127,25 @@ public class FrasesTests(AbitonmindFactory api) : IClassFixture<AbitonmindFactor
     }
 
     /// <summary>
+    /// Los espacios del principio y del final no se guardan, y el máximo se cuenta sin ellos: una frase de 200
+    /// con espacios alrededor da 201.
+    /// </summary>
+    [Fact]
+    public async Task Admin_CreaFraseConEspaciosEnLosExtremos_SeGuardaSinEllos()
+    {
+        HttpClient admin = await api.ClienteAdminAsync();
+        string texto = new string('a', 200);
+
+        // Con "with", el texto llega a la API tal cual, con sus espacios.
+        GuardarFraseDto datos = new GuardarFraseDto("") with { Texto = $"  {texto}  " };
+        HttpResponseMessage creado = await admin.PostAsJsonAsync("/api/frases", datos, _ct);
+        FraseDto? frase = await creado.Content.ReadFromJsonAsync<FraseDto>(_ct);
+
+        Assert.Equal(HttpStatusCode.Created, creado.StatusCode);
+        Assert.Equal(texto, frase!.Texto);
+    }
+
+    /// <summary>
     /// El admin edita una frase que ha creado: 204, y al listar sale cambiada.
     /// </summary>
     [Fact]

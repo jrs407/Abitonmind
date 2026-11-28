@@ -12,29 +12,6 @@ namespace Abitonmind.Api;
 public static class UsuarioEndpoints
 {
     /// <summary>
-    /// Método estatico que sirve para comprobar que todos los datos son correctos.
-    /// </summary>
-    /// <param name="datos"></param>
-    /// <returns></returns>
-    private static string? ErrorEnDatos(PreferenciaDto datos)
-    {
-        if (!Enum.IsDefined(datos.TipoRacha))
-        {
-            return "Ese tipo de racha no existe";
-        }
-
-        if (datos.ZonaHoraria is not null)
-        {
-            if (datos.ZonaHoraria.Length > 40 || !TimeZoneInfo.TryFindSystemTimeZoneById(datos.ZonaHoraria, out _))
-            {
-                return "Esa zona horaria no existe";
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>
     /// Creación del mapa de endpoints de usuarios.
     /// </summary>
     /// <param name="app"></param>
@@ -66,21 +43,6 @@ public static class UsuarioEndpoints
         {
             string usuarioId = usuario.IdDelUsuario();
 
-            string? identidad = null;
-
-            if (!string.IsNullOrWhiteSpace(datos.Identidad))
-            {
-                identidad = datos.Identidad.Trim();
-            }
-
-            if (identidad is not null)
-            {
-                if (identidad.Length > 255)
-                {
-                    return Results.BadRequest("La identidad es demasiado larga");
-                }
-            }
-
             var cuenta = await db.Users.FirstOrDefaultAsync(u => u.Id == usuarioId);
 
             if (cuenta is null)
@@ -88,7 +50,7 @@ public static class UsuarioEndpoints
                 return Results.NotFound();
             }
 
-            cuenta.Identidad = identidad;
+            cuenta.Identidad = datos.Identidad;
             await db.SaveChangesAsync();
 
             return Results.NoContent();
@@ -112,13 +74,6 @@ public static class UsuarioEndpoints
         // Endpoint que edita las preferencias
         grupo.MapPut("/preferencias", async (PreferenciaDto datos, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            string? error = ErrorEnDatos(datos);
-
-            if (error is not null)
-            {
-                return Results.BadRequest(error);
-            }
-
             string usuarioId = usuario.IdDelUsuario();
 
             var cuenta = await db.Users.FirstOrDefaultAsync(u => u.Id == usuarioId);

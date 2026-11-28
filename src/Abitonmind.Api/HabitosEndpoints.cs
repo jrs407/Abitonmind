@@ -32,68 +32,6 @@ public static class HabitosEndpoints
     }
 
     /// <summary>
-    /// Método estatico que sirve para comprobar que todos los datos son correctos.
-    /// </summary>
-    /// <param name="datos"></param>
-    /// <returns></returns>
-    private static string? ErrorEnDatos(GuardarHabitoDto datos)
-    {
-        if (string.IsNullOrWhiteSpace(datos.Nombre))
-        {
-            return "El nombre es obligatorio";
-        }
-
-        if (datos.Nombre.Length > 100)
-        {
-            return "El nombre es demasiado largo";
-        }
-
-        if (datos.Descripcion is not null)
-        {
-            if (datos.Descripcion.Length > 255)
-            {
-                return "La descripcion es demasiado larga.";
-            }
-        }
-
-        if (datos.Preparacion is not null)
-        {
-            if (datos.Preparacion.Length > 100)
-            {
-                return "La preparacion es demasiado larga.";
-            }
-        }
-
-        if (datos.ColorHabito is not null)
-        {
-            if (!Enum.IsDefined(datos.ColorHabito.Value))
-            {
-                return "Ese color no existe";
-            }
-        }
-
-        if (datos.Tipo is not null)
-        {
-            if (!Enum.IsDefined(datos.Tipo.Value))
-            {
-                return "Ese tipo de habito no existe";
-            }
-        }
-
-        if (datos.Dias < DiasSemana.Ninguno || datos.Dias > DiasSemana.Todos)
-        {
-            return "Ese día no existe";
-        }
-
-        if (datos.Recordatorio && datos.Hora is null)
-        {
-            return "Solo puede haber un recordatorio si hay una hora de aviso.";
-        }
-
-        return null;
-    }
-
-    /// <summary>
     /// Creación del mapa de endpoints de habitos.
     /// </summary>
     /// <param name="app"></param>
@@ -130,12 +68,6 @@ public static class HabitosEndpoints
         // Endpoint que crea un habito.
         grupo.MapPost("/", async (GuardarHabitoDto datos, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            string? error = ErrorEnDatos(datos);
-
-            if (error is not null)
-            {
-                return Results.BadRequest(error);
-            }
 
             var habito = new Habito { UsuarioId = usuario.IdDelUsuario(), Nombre = datos.Nombre, Descripcion = datos.Descripcion, Preparacion = datos.Preparacion, Hora = datos.Hora, Dias = datos.Dias, Tipo = datos.Tipo, HabitoAntecesorId = datos.HabitoAntecesorId, ColorHabito = datos.ColorHabito, Recordatorio = datos.Recordatorio };
 
@@ -166,13 +98,6 @@ public static class HabitosEndpoints
         // Endpoint que edita un habito.
         grupo.MapPut("/{id:int}", async (int id, GuardarHabitoDto datos, ClaimsPrincipal usuario, AbitonmindContext db, HoyDelUsuario hoyDelUsuario) =>
         {
-            string? error = ErrorEnDatos(datos);
-
-            if (error is not null)
-            {
-                return Results.BadRequest(error);
-            }
-
             string usuarioId = usuario.IdDelUsuario();
 
             var habito = await BuscarHabitoAsync(id, usuarioId, db);

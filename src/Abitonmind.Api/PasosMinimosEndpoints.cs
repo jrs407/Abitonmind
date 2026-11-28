@@ -34,50 +34,6 @@ public static class PasosMinimosEndpoints
     }
 
     /// <summary>
-    /// Método estatico que sirve para comprobar que todos los datos son correctos.
-    /// </summary>
-    /// <param name="datos"></param>
-    /// <returns></returns>
-    private static string? ErrorEnDatos(GuardarPasoMinimoDto datos)
-    {
-        if (string.IsNullOrWhiteSpace(datos.Nombre))
-        {
-            return "El nombre es obligatorio.";
-        }
-
-        if (datos.Nombre.Length > 100)
-        {
-            return "El nombre es demasiado largo.";
-        }
-
-        if (datos.Descripcion is not null)
-        {
-            if (datos.Descripcion.Length > 255)
-            {
-                return "La descripción es demasiado larga.";
-            }
-        }
-
-        if (datos.Preparacion is not null)
-        {
-            if (datos.Preparacion.Length > 100)
-            {
-                return "La preparación es demasiado larga";
-            }
-        }
-
-        if (datos.ColorPasoMinimo is not null)
-        {
-            if (!Enum.IsDefined(datos.ColorPasoMinimo.Value))
-            {
-                return "El color no existe";
-            }
-        }
-
-        return null;
-    }
-
-    /// <summary>
     /// Creación del mapa de endpoints de pasos minimos.
     /// </summary>
     /// <param name="app"></param>
@@ -114,13 +70,6 @@ public static class PasosMinimosEndpoints
         // Endpoint que crea un paso minimo.
         grupo.MapPost("/", async (GuardarPasoMinimoDto datos, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            string? error = ErrorEnDatos(datos);
-
-            if (error is not null)
-            {
-                return Results.BadRequest(error);
-            }
-
             var pasoMinimo = new PasoMinimo { UsuarioId = usuario.IdDelUsuario(), Nombre = datos.Nombre, Descripcion = datos.Descripcion, Preparacion = datos.Preparacion, ColorPasoMinimo = datos.ColorPasoMinimo };
 
             db.PasosMinimos.Add(pasoMinimo);
@@ -132,13 +81,6 @@ public static class PasosMinimosEndpoints
         // Endpoint que edita un paso minimo
         grupo.MapPut("/{id:int}", async (int id, GuardarPasoMinimoDto datos, ClaimsPrincipal usuario, AbitonmindContext db) =>
         {
-            string? error = ErrorEnDatos(datos);
-
-            if (error is not null)
-            {
-                return Results.BadRequest(error);
-            }
-
             string usuarioId = usuario.IdDelUsuario();
 
             var pasoMinimo = await BuscarPasoMinimoAsync(id, usuarioId, db);

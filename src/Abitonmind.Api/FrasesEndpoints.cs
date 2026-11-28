@@ -59,7 +59,7 @@ public static class FrasesEndpoints
     /// <returns></returns>
     private static async Task<Created<FraseDto>> CrearAsync(GuardarFraseDto datos, AbitonmindContext db)
     {
-        var frase = new Frase { Texto = datos.Texto.Trim() };
+        var frase = new Frase { Texto = datos.Texto };
 
         db.Frases.Add(frase);
         await db.SaveChangesAsync();
@@ -83,7 +83,7 @@ public static class FrasesEndpoints
             return TypedResults.NotFound();
         }
 
-        frase.Texto = datos.Texto.Trim();
+        frase.Texto = datos.Texto;
         await db.SaveChangesAsync();
 
         return TypedResults.NoContent();
